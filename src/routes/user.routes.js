@@ -11,6 +11,7 @@ import {
   loginUser,
   registerUser,
   resetPassword,
+  verifyOTP,
 } from "../controller/user.controller.js";
 import { logoutUser } from "../controller/user.controller.js";
 
@@ -47,6 +48,32 @@ router.post(
  *    responses:
  *       201:
  *         description: User registered successfully
+ *
+ */
+
+//send verify OTP
+router.post("/user/verifyOTP", verifyOTP);
+
+/**
+ * @swagger
+ * /user/verifyOTP:
+ *  post:
+ *    summary: Verify OTP
+ *    description: Verify the OTP sent to the user's email.
+ *    tags: [Auth]
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            required: [otp]
+ *            properties:
+ *              otp:
+ *                type: string
+ *    responses:
+ *       200:
+ *         description: OTP verified successfully
  *
  */
 

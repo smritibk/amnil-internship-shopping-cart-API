@@ -1,12 +1,10 @@
 import express from "express";
 import { isCustomer, isSeller } from "../middlewares/validate.roles.js";
 import validateReqBody from "../middlewares/validate.req.body.js";
-import {
-  paginationDataValidationSchema,
-  productValidationSchema,
-} from "../validation/product.validation.js";
+import { productValidationSchema } from "../validation/product.validation.js";
 import {
   addProduct,
+  deleteProduct,
   editProduct,
   viewProductsCustomer,
   viewProductsSeller,
@@ -164,9 +162,105 @@ router.get("/view/products/seller", isSeller, viewProductsSeller);
  */
 
 //edit product
-router.put("/edit/product/:id", isSeller, validateReqBody(productValidationSchema), editProduct);
+router.put(
+  "/edit/product/:id",
+  isSeller,
+  validateReqBody(productValidationSchema),
+  editProduct
+);
+
+/**
+ * @swagger
+ * /edit/product/{id}:
+ *   put:
+ *     summary: Edit an existing product
+ *     description: Update product details by its ID. Only the product owner (seller) can edit.
+ *     tags: [Product]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique product ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *                 format: decimal
+ *               stock:
+ *                 type: integer
+ *             example:
+ *               name: "iPhone 15 Pro"
+ *               description: "Latest iPhone model with A17 chip"
+ *               price: 1299.99
+ *               stock: 20
+ *     responses:
+ *       200:
+ *         description: Product updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Product updated successfully
+ *       400:
+ *         description: Invalid input data
+ *       403:
+ *         description: Not authorized (not the product owner)
+ *       404:
+ *         description: Product not found
+ */
 
 //delete product
-// router.delete("/delete/product/:id", isSeller, deleteProduct);
+router.delete("/delete/product/:id", isSeller, deleteProduct);
+
+/**
+ * @swagger
+ * /delete/product/{id}:
+ *   delete:
+ *     summary: Delete a product
+ *     description: Delete an existing product by its ID. Only the product owner (seller) can delete.
+ *     tags: [Product]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique product ID
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Product deleted successfully
+ *       403:
+ *         description: Not authorized (not the product owner)
+ *       404:
+ *         description: Product not found
+ */
 
 export default router;

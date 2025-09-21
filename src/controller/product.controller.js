@@ -3,6 +3,17 @@ import Product from "../models/product.model.js";
 
 //add product
 export const addProduct = async (req, res) => {
+  //check if product with same name exists for the seller
+  const existingProduct = await Product.findOne({
+    where: { name: req.body.name, sellerId: req.loggedInUserId },
+  });
+
+  if (existingProduct) {
+    return res
+      .status(409)
+      .send({ message: "Product with same name already exists." });
+  }
+
   //extract newProduct from req.body
   const newProduct = req.body;
   // console.log(newProduct)
@@ -83,7 +94,7 @@ export const viewProductsSeller = async (req, res) => {
     .send({ message: "Products", productDetails: products });
 };
 
-//edit product
+//edit product by id
 export const editProduct = async (req, res) => {
   try {
     // extract product id from req.params
@@ -110,6 +121,39 @@ export const editProduct = async (req, res) => {
 
     // send response
     return res.status(200).send({ message: "Product updated successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({ message: "Server error" });
+  }
+};
+
+//delete product by id
+export const deleteProduct = async (req, res) => {
+  try {
+    // extract product id from req.params
+    const { id } = req.params;
+
+    // find product by primary key
+    const product = await Product.findByPk(id);
+
+    // if product not found
+    if (!product) {
+      return res.status(404).send({ message: "Product does not exist." });
+    }
+
+    // check product ownership
+    const isProductOwner = product.sellerId === req.loggedInUserId;
+    if (!isProductOwner) {
+      return res
+        .status(403)
+        .send({ message: "You are not the product owner." });
+    }
+
+    // delete product
+    await product.destroy();
+
+    // send response
+    return res.status(200).send({ message: "Product deleted successfully" });
   } catch (error) {
     console.error(error);
     return res.status(500).send({ message: "Server error" });

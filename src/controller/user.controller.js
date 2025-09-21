@@ -15,6 +15,15 @@ export const registerUser = async (req, res) => {
     return res.status(409).send({ message: "User already exists." });
   }
 
+  //send verification email
+  //generate OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  newUser.otp = otp;
+  newUser.otpExpiry = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+
+  //send verification email
+  await sendOtpVerificationEmail(newUser.email, newUser.name, otp);
+
   //hashing the password
   const plainPassword = newUser.password;
   const saltRound = 10;
@@ -32,6 +41,60 @@ export const registerUser = async (req, res) => {
   });
 };
 
+//send verification email
+const sendOtpVerificationEmail = async (email, name, otp) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Email Verification",
+      html: `<p>Hi ${name},</p>
+             <p>Your OTP for email verification is: <strong>${otp}</strong></p>
+             <p>Thank you!</p>`,
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log("Error sending email: ", error);
+      } else {
+        console.log("Email sent: ", info.response);
+      }
+    });
+  } catch (error) {
+    return res.status(500).send({ message: error.message });
+  }
+};
+
+//verify OTP
+export const verifyOTP = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const user = await User.findOne({ where: { otp: otp } });
+
+    if (!user) {
+      return res.status(400).send({ message: "Invalid OTP" });
+    }
+    if (user.otpExpiry < Date.now()) {
+      return res.status(400).send({ message: "OTP has expired" });
+    }
+    user.isVerified = true;
+    user.otp = null;
+    user.otpExpiry = null;
+    await user.save();
+    return res.status(200).send({ message: "Email verified successfully" });
+  } catch (error) {
+    return res.status(500).send({ message: error.message });
+  }
+};
+
 //login user
 export const loginUser = async (req, res) => {
   //extract login credentials from req body
@@ -44,6 +107,13 @@ export const loginUser = async (req, res) => {
   if (!user) {
     return res.status(404).send({
       message: "Invalid credentials",
+    });
+  }
+
+  //if user is not verified
+  if (!user.isVerified) {
+    return res.status(401).send({
+      message: "Email is not verified. Please verify your email to login.",
     });
   }
 
@@ -71,6 +141,7 @@ export const loginUser = async (req, res) => {
   //send response
   return res.status(200).send({
     message: "User is logged in successfully",
+    user: { id: user.id, name: user.name, email: user.email, role: user.role },
     accessToken: accessToken,
     refreshToken: refreshToken,
   });
