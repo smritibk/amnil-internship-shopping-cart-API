@@ -130,7 +130,7 @@ export const loginUser = async (req, res) => {
   }
 
   //if password matches, generate token using jwt
-  const payload = { email: user.email };
+  const payload = { email: user.email, role: user.role };
   const secretKey = process.env.SECRET_KEY;
   const accessToken = jwt.sign(payload, secretKey);
 

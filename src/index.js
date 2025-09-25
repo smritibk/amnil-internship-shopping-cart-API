@@ -8,10 +8,17 @@ import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import userRoutes from "./routes/user.routes.js";
 import productRoutes from "./routes/product.routes.js";
+import cors from "cors";
 
 const app = express();
 const PORT = process.env.PORT;
 
+app.use(
+  cors({
+    origin: "http://localhost:5173", //access-control-allow-origin
+    credentials: true, //access-control-allow-credentials:true
+  })
+);
 app.use(express.json());
 
 // Swagger configuration
@@ -34,6 +41,17 @@ const swaggerOptions = {
           type: "http",
           scheme: "bearer",
           bearerFormat: "JWT",
+        },
+      },
+      schemas: {
+        Product: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            description: { type: "string" },
+            price: { type: "number" },
+            stock: { type: "integer" },
+          },
         },
       },
     },

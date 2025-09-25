@@ -9,6 +9,9 @@ export const productValidationSchema = Yup.object().shape({
   price: Yup.number()
     .required("Price is required")
     .min(0, "Price must be positive"),
+  categoryId: Yup.string()
+    .uuid("categoryId must be a valid UUID")
+    .required("categoryId is required"),
 //   category: Yup.string()
 //     .oneOf(
 //       ["Electronics", "Clothing", "Books", "Home", "Beauty"],

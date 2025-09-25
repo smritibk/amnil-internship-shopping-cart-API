@@ -3,9 +3,12 @@ import { isCustomer, isSeller } from "../middlewares/validate.roles.js";
 import validateReqBody from "../middlewares/validate.req.body.js";
 import { productValidationSchema } from "../validation/product.validation.js";
 import {
+  addCategory,
   addProduct,
   deleteProduct,
   editProduct,
+  filterProductsByPrice,
+  listCategories,
   viewProductsCustomer,
   viewProductsSeller,
 } from "../controller/product.controller.js";
@@ -35,7 +38,7 @@ router.post(
  *        application/json:
  *          schema:
  *            type: object
- *            required: [name, description, price, stock]
+ *            required: [name, description, price, stock, categoryId]
  *            properties:
  *              name:
  *                type: string
@@ -45,6 +48,11 @@ router.post(
  *                type: number
  *              stock:
  *                type: number
+ *              categoryId:
+ *                type: string
+ *                format: uuid
+ *                required: true
+ *                description: The unique category ID
  *    responses:
  *       201:
  *         description: Product added successfully
@@ -57,53 +65,95 @@ router.get("/view/products/customer", isCustomer, viewProductsCustomer);
 /**
  * @swagger
  * /view/products/customer:
- *  get:
- *    summary: View products (for customers)
- *    description: Get a paginated list of products with optional search by product name.
- *    tags: [Product]
- *    parameters:
- *      - in: query
- *        name: page
- *        schema:
- *          type: integer
- *        required: true
- *        description: Page number for pagination
- *      - in: query
- *        name: limit
- *        schema:
- *          type: integer
- *        required: true
- *        description: Number of products per page
- *      - in: query
- *        name: searchText
- *        schema:
- *          type: string
- *        required: false
- *        description: Optional search text to filter products by name
- *    responses:
- *      200:
- *        description: Products retrieved successfully
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                message:
- *                  type: string
- *                productDetails:
- *                  type: array
- *                  items:
- *                    type: object
- *                    properties:
- *                      name:
- *                        type: string
- *                      description:
- *                        type: string
- *                      price:
- *                        type: number
- *                        format: float
- *                      stock:
- *                        type: integer
+ *   get:
+ *     summary: View products (for customers)
+ *     description: Get a paginated list of products with optional filters.
+ *     tags: [Product]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Number of products per page
+ *       - in: query
+ *         name: searchText
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Optional search text to filter products by name
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *           format: float
+ *         required: false
+ *         description: Optional minimum price to filter products
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *           format: float
+ *         required: false
+ *         description: Optional maximum price to filter products
+ *       - in: query
+ *         name: categoryIds
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Comma-separated category UUIDs (e.g., id1,id2)
+ *       - in: query
+ *         name: categoryNames
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Comma-separated category names (e.g., Electronics,Books)
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [name, price, createdAt]
+ *           default: createdAt
+ *         required: false
+ *         description: Field to sort products by
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *           default: DESC
+ *         required: false
+ *         description: Sort order
+ *     responses:
+ *       200:
+ *         description: Products retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 productDetails:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       price:
+ *                         type: number
+ *                         format: float
+ *                       stock:
+ *                         type: integer
  */
 
 //view products as a seller
@@ -263,4 +313,116 @@ router.delete("/delete/product/:id", isSeller, deleteProduct);
  *         description: Product not found
  */
 
+//filter products by price range
+router.get("/filter/products", isCustomer, filterProductsByPrice);
+
+/**
+ * @swagger
+ * /filter/products:
+ *   get:
+ *     summary: Filter products by price range
+ *     description: Retrieve products that fall within a given minimum and maximum price.
+ *     tags: [Product]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *           format: float
+ *         required: false
+ *         description: Minimum product price
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *           format: float
+ *         required: false
+ *         description: Maximum product price
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *         required: false
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *         required: false
+ *         description: Number of products per page
+ *     responses:
+ *       200:
+ *         description: List of filtered products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Filtered products
+ *                 products:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *       401:
+ *         description: Unauthorized (not a customer)
+ *       500:
+ *         description: Server error
+ */
+
+// add category (seller only)
+router.post("/category", isSeller, addCategory);
+
+/**
+ * @swagger
+ * /category:
+ *   post:
+ *     summary: Add a new category
+ *     description: Add a new category for products. Only sellers can add categories.
+ *     tags: [Product]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Category added successfully
+ */
+
+// list categories (public)
+router.get("/categories", listCategories);
+
+/**
+ * @swagger
+ * /categories:
+ *   get:
+ *     summary: Get all categories
+ *     description: Retrieve all categories.
+ *     tags: [Product]
+ *     responses:
+ *       200:
+ *         description: Categories retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Categories retrieved successfully
+ *                 categories:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Category'
+ */
 export default router;

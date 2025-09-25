@@ -73,6 +73,7 @@ export const isCustomer = async (req, res, next) => {
 
     //verify token
     const payload = jwt.verify(token, secretKey);
+    console.log(payload)
 
     //find user using email from payload
     // const user = await User.findOne({
@@ -87,7 +88,7 @@ export const isCustomer = async (req, res, next) => {
 
     //check if user role is "customer"
     //if user role is not "customer", throw error
-    if (user.role !== "customer") {
+    if (payload.role !== "customer") {
       throw new Error();
     }
 
@@ -97,6 +98,6 @@ export const isCustomer = async (req, res, next) => {
     //call next function
     next();
   } catch (error) {
-    return res.status(401).send({ message: "Unauthorized" });
+    return res.status(401).send({ message: "Unauthorized123" });
   }
 };

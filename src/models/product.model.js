@@ -1,6 +1,7 @@
 import sequelize from "../config/db.configuration.js";
 import { DataTypes } from "sequelize";
 import User from "./user.model.js";
+import Category from "./category.model.js";
 
 const Product = sequelize.define("Product", {
   id: {
@@ -35,5 +36,8 @@ const Product = sequelize.define("Product", {
 
 User.hasMany(Product, { foreignKey: "sellerId", as: "products" });
 Product.belongsTo(User, { foreignKey: "sellerId", as: "seller" });
+
+Category.hasMany(Product, { foreignKey: "categoryId", as: "products" });
+Product.belongsTo(Category, { foreignKey: "categoryId", as: "category" });
 
 export default Product;
