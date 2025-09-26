@@ -56,12 +56,10 @@ export const addCategory = async (req, res) => {
     const newCategory = await Category.create({ name });
 
     // send response
-    return res
-      .status(201)
-      .send({
-        message: "Category created successfully",
-        category: newCategory,
-      });
+    return res.status(201).send({
+      message: "Category created successfully",
+      category: newCategory,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).send({ message: "Server error" });
@@ -79,9 +77,27 @@ export const listCategories = async (req, res) => {
   }
 };
 
+//get product by id
+export const productById = async (req, res) => {
+  try {
+    // extract product id from req.params
+    const { id } = req.params;
+
+    const product = await Product.findByPk(id);
+    if (!product) {
+      return res.status(404).send({ message: "Product not found" });
+    }
+
+    return res.status(200).send({ message: "Product details", product });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({ message: "Server error" });
+  }
+};
+
 //view products as a customer
 export const viewProductsCustomer = async (req, res) => {
-  const {
+  let {
     page,
     limit,
     searchText,
@@ -294,4 +310,3 @@ export const filterProductsByPrice = async (req, res) => {
     .status(200)
     .send({ message: "Products", productDetails: products });
 };
-

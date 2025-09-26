@@ -9,6 +9,7 @@ import {
   editProduct,
   filterProductsByPrice,
   listCategories,
+  productById,
   viewProductsCustomer,
   viewProductsSeller,
 } from "../controller/product.controller.js";
@@ -58,6 +59,9 @@ router.post(
  *         description: Product added successfully
  *
  */
+
+//view product details by id
+router.get("/view/product/:id", productById);
 
 //view products as a customer
 router.get("/view/products/customer", isCustomer, viewProductsCustomer);

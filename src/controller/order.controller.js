@@ -4,7 +4,7 @@ import Order from "../models/order.model.js";
 import OrderItem from "../models/orderItem.model.js";
 import Product from "../models/product.model.js";
 
-// place order 
+// place order
 export const placeOrder = async (req, res) => {
   try {
     const userId = req.loggedInUserId;
@@ -25,9 +25,19 @@ export const placeOrder = async (req, res) => {
 
     for (const item of cartItems) {
       const product = await Product.findByPk(item.productId);
+      console.log(product);
 
       if (!product) {
-        return res.status(404).json({ message: `Product not found for item ${item.id}` });
+        return res
+          .status(404)
+          .json({ message: `Product not found for item ${item.id}` });
+      }
+
+      //if product stock is less than item quantity, return error
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          message: `Insufficient stock for product ${product.name}. Available stock: ${product.stock}`,
+        });
       }
 
       const itemTotal = product.price * item.quantity;
@@ -39,6 +49,10 @@ export const placeOrder = async (req, res) => {
         quantity: item.quantity,
         price: product.price, // ✅ snapshot of product price at checkout
       });
+
+      //reduce product stock here instead of after order creation
+    //   product.stock -= item.quantity;
+    //   await product.save();
     }
 
     // Create the order
@@ -50,10 +64,19 @@ export const placeOrder = async (req, res) => {
     });
 
     // Attach orderId to orderItems
-    orderItems.forEach(item => item.orderId = order.id);
+    orderItems.forEach((item) => (item.orderId = order.id));
 
     // Create OrderItems
     await OrderItem.bulkCreate(orderItems);
+
+    // reduce stock of products
+    for (const item of cartItems) {
+      const product = await Product.findByPk(item.productId);
+      if (product) {
+        product.stock -= item.quantity;
+        await product.save();
+      }
+    }
 
     // Clear the cart
     await CartItem.destroy({ where: { cartId: cart.id } });
@@ -63,7 +86,6 @@ export const placeOrder = async (req, res) => {
       order,
       orderItems,
     });
-
   } catch (error) {
     console.error("Error placing order:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -79,5 +101,5 @@ export const viewOrders = async (req, res) => {
   } catch (error) {
     console.error("Error viewing orders:", error);
     return res.status(500).json({ message: "Internal server error" });
-  } 
+  }
 };

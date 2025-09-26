@@ -115,15 +115,115 @@ router.get("/cart/view", isCustomer, viewCartItems);
 
 //edit cart item
 router.put(
-  "/cart/edit/:cartItemId",
+  "/cart/edit/:id",
   isCustomer,
   validateReqBody(updateCartItemValidationSchema),
   editCartItem
 );
 
-
+/**
+ * @swagger
+ * /cart/edit/{id}:
+ *   put:
+ *     summary: Edit an item in the cart
+ *     description: Allows a customer to update the quantity of an item in their cart.
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the cart item to be updated.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - quantity
+ *             properties:
+ *               quantity:
+ *                 type: integer
+ *                 example: 3
+ *                 description: The new quantity for the cart item.
+ *     responses:
+ *       200:
+ *         description: Cart item updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Cart item updated"
+ *                 cartItem:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     cartId:
+ *                       type: string
+ *                       format: uuid
+ *                     quantity:
+ *                       type: integer
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       401:
+ *         description: Unauthorized (customer not logged in)
+ *       404:
+ *         description: Cart or cart item not found
+ *       500:
+ *         description: Internal server error
+ */
 
 //delete cart item
-router.delete("/cart/delete/:cartItemId", isCustomer, removeCartItem);
+router.delete("/cart/delete/:id", isCustomer, removeCartItem);
+
+/**
+ * @swagger
+ * /cart/delete/{id}:
+ *   delete:
+ *     summary: Remove an item from the cart
+ *     description: Allows a customer to remove a specific item from their shopping cart.
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the cart item to be removed.
+ *     responses:
+ *       200:
+ *         description: Cart item removed successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Cart item removed successfully"
+ *       401:
+ *         description: Unauthorized (customer not logged in)
+ *       404:
+ *         description: Cart item not found
+ *       500:
+ *         description: Internal server error
+ */
 
 export default router;
