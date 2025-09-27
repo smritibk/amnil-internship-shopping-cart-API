@@ -14,6 +14,7 @@ import {
   verifyOTP,
 } from "../controller/user.controller.js";
 import { logoutUser } from "../controller/user.controller.js";
+import { isUser } from "../middlewares/validate.roles.js";
 
 const router = express.Router();
 
@@ -106,7 +107,7 @@ router.post("/user/login", validateReqBody(loginValidationSchema), loginUser);
  */
 
 //logout user
-router.post("/user/logout", logoutUser);
+router.post("/user/logout", isUser, logoutUser);
 
 /**
  * @swagger
@@ -194,5 +195,22 @@ router.post(
  *       200:
  *         description: Password reset successful
  */
+
+// /me endpoint to get logged-in user details
+router.get("/me", isUser, (req, res) => {
+    res.json({ message: "You are authenticated!", user: req.user });
+});
+
+/**
+* @swagger
+* /me:
+*   get:
+*     summary: Example protected route (user)
+*     security:
+*       - bearerAuth: []
+*     responses:
+*       200:
+*         description: Success
+*/
 
 export default router;

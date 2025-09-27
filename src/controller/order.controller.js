@@ -8,9 +8,9 @@ import Product from "../models/product.model.js";
 export const placeOrder = async (req, res) => {
   try {
     const userId = req.loggedInUserId;
-    const { cartId, paymentMethod } = req.body;
+    const { paymentMethod } = req.body;
 
-    const cart = await Cart.findOne({ where: { id: cartId, userId } });
+    const cart = await Cart.findOne({ where: { userId } });
     if (!cart) {
       return res.status(404).json({ message: "Cart not found" });
     }
@@ -100,6 +100,21 @@ export const viewOrders = async (req, res) => {
     return res.status(200).json({ orders });
   } catch (error) {
     console.error("Error viewing orders:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//get order details by id
+export const getOrderDetailsById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findByPk(id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    return res.status(200).json({ order });
+  } catch (error) {
+    console.error("Error fetching order details:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

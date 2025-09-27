@@ -149,11 +149,7 @@ export const loginUser = async (req, res) => {
 
 //logout user
 export const logoutUser = async (req, res) => {
-  const { email } = req.body;
-  if (!email) {
-    return res.status(400).send({ message: "Email is required for logout." });
-  }
-  const user = await User.findOne({ where: { email } });
+  const user = await User.findOne({ where: { email: req.user.email } });
   if (!user) {
     return res.status(404).send({ message: "User not found." });
   }
@@ -283,3 +279,5 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
