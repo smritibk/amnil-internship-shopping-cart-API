@@ -120,6 +120,10 @@ export const viewProductsCustomer = async (req, res) => {
   }
 
   const skip = (page - 1) * limit;
+
+  const totalProducts = await Product.count();
+  const totalPages = Math.ceil(totalProducts / limit);
+
   let where = {};
 
   if (searchText) {
@@ -179,9 +183,16 @@ export const viewProductsCustomer = async (req, res) => {
     ],
   });
 
-  return res
-    .status(201)
-    .send({ message: "Products", productDetails: products });
+  return res.status(201).send({
+    message: "Products",
+    paginationData: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalProducts,
+      totalPages,
+    },
+    productDetails: products,
+  });
 };
 
 //view products as a seller

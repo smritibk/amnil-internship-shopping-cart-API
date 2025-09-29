@@ -6,7 +6,8 @@ const validateReqBody = (validationSchema) => {
     //if validation fails, throw error
     try {
       const validatedData = await validationSchema.validate(data);
-      req.body = validatedData;
+      console.log("validated data:", validatedData);
+      req.body.email = validatedData.email;
     } catch (error) {
       return res.status(400).send({ message: error.message });
     }

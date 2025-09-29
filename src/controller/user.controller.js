@@ -76,12 +76,19 @@ const sendOtpVerificationEmail = async (email, name, otp) => {
 //verify OTP
 export const verifyOTP = async (req, res) => {
   try {
-    const { otp } = req.body;
-    const user = await User.findOne({ where: { otp: otp } });
+    const { email, otp } = req.body;
+    const user = await User.findOne({ where: { email: email } });
+
+    //check if user exists and otp is valid
 
     if (!user) {
+      return res.status(400).send({ message: "User not found" });
+    }
+
+    if (user.otp !== otp) {
       return res.status(400).send({ message: "Invalid OTP" });
     }
+
     if (user.otpExpiry < Date.now()) {
       return res.status(400).send({ message: "OTP has expired" });
     }
@@ -179,7 +186,7 @@ const sendResetPasswordEmail = async (email, name, resetToken) => {
       subject: "Password Reset Request",
       html: `<p>Hi ${name},</p>
              <p>You requested for a password reset. Click the link below to reset your password:</p>
-             <p><a href="http://localhost:8080/user/forgetPassword?token=${resetToken}">Reset Password</a></p>
+             <p><a href="http://localhost:5173/resetPassword?token=${resetToken}">Reset Password</a></p>
              <p>If you did not request this, please ignore this email.</p>
              <p>Thank you!</p>
               <p>${resetToken}</p>
@@ -201,14 +208,16 @@ const sendResetPasswordEmail = async (email, name, resetToken) => {
 //forget password
 export const forgetPassword = async (req, res) => {
   try {
-    const userDetails = await User.findOne({ email: req.body.email });
-    console.log(userDetails);
+    console.log("req.body:", req.body);
+    const { email } = req.body;
+    const userDetails = await User.findOne({ where: { email: email } });
+    console.log(userDetails.email);
 
     if (!userDetails) {
       return res.status(404).send({ message: "User not found" });
     }
 
-    const email = userDetails.email;
+    // const email = userDetails.email;
     console.log(email);
 
     //generate a reset token (in a real application, this should be more secure and time-limited)
