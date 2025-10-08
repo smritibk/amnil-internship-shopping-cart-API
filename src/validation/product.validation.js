@@ -9,18 +9,14 @@ export const productValidationSchema = Yup.object().shape({
   price: Yup.number()
     .required("Price is required")
     .min(0, "Price must be positive"),
-  categoryId: Yup.string()
-    .uuid("categoryId must be a valid UUID")
-    .required("categoryId is required"),
-//   category: Yup.string()
-//     .oneOf(
-//       ["Electronics", "Clothing", "Books", "Home", "Beauty"],
-//       "Category is not valid"
-//     )
-//     .required("Category is required"),
+
   stock: Yup.number()
     .required("Stock is required")
     .min(0, "Stock must be positive"),
+  categoryId: Yup.string()
+    .uuid("categoryId must be a valid UUID")
+    .required("categoryId is required"),
+  image: Yup.string().nullable(),
 });
 
 export const paginationDataValidationSchema = Yup.object({

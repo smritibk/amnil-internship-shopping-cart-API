@@ -17,6 +17,12 @@ export const addProduct = async (req, res) => {
       .send({ message: "Product with same name already exists." });
   }
 
+  // if image is uploaded, get the image URL
+  // const imageUrl = req.file ? req.file.path : null;
+  // if (imageUrl) {
+  //   req.body.image = imageUrl;
+  // }
+
   //extract newProduct from req.body
   const newProduct = req.body;
 
@@ -175,6 +181,7 @@ export const viewProductsCustomer = async (req, res) => {
       "name",
       "price",
       "stock",
+      "image",
       // Postgres substring
       [
         Product.sequelize.literal(`SUBSTRING("description", 1, 200)`),

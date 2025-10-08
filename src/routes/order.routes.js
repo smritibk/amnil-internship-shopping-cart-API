@@ -1,12 +1,23 @@
 import express from "express";
-import { getOrderDetailsById, placeOrder, viewOrders } from "../controller/order.controller.js";
-import { isCustomer } from "../middlewares/validate.roles.js";
+import {
+  getOrderDetailsById,
+  mostPlacedProducts,
+  placeOrder,
+  totalSales,
+  viewOrders,
+} from "../controller/order.controller.js";
+import { isCustomer, isSeller } from "../middlewares/validate.roles.js";
 import validateReqBody from "../middlewares/validate.req.body.js";
 import { orderValidationSchema } from "../validation/order.validation.js";
 
 const router = express.Router();
 
-router.post("/order/place", isCustomer, validateReqBody(orderValidationSchema), placeOrder);
+router.post(
+  "/order/place",
+  isCustomer,
+  validateReqBody(orderValidationSchema),
+  placeOrder
+);
 
 /**
  * @swagger
@@ -254,6 +265,101 @@ router.get("/order/view/:id", isCustomer, getOrderDetailsById);
  *         description: Internal server error
  */
 
+//get most placed products
+router.get("/order/summary", mostPlacedProducts);
+
+/**
+ * @swagger
+ * /order/summary:
+ *   get:
+ *     summary: Get sales summary and most placed products
+ *     description: Returns a summary of the seller's total sales and the top 5 most frequently placed products. Accessible only to authenticated sellers.
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved sales summary and most placed products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     totalSales:
+ *                       type: number
+ *                       format: float
+ *                       example: 15230.75
+ *                     topProducts:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           productId:
+ *                             type: string
+ *                             format: uuid
+ *                             example: "a56b7d8c-45d9-4b23-a8c4-6e2c1b92d3f5"
+ *                           productName:
+ *                             type: string
+ *                             example: "Wireless Earbuds"
+ *                           totalQuantity:
+ *                             type: integer
+ *                             example: 85
+ *       401:
+ *         description: Unauthorized — Seller authentication required
+ *       500:
+ *         description: Internal server error
+ */
+
+//get total sales by product sold
+router.get("/order/totalSales", totalSales);
+
+/**
+ * @swagger
+ * /order/totalSales:
+ *   get:
+ *     summary: Get total sales per product
+ *     description: Returns total quantity sold and total revenue for each product. Accessible only to authenticated users (or sellers, depending on your auth rules).
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved total sales per product
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalSales:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       productId:
+ *                         type: string
+ *                         format: uuid
+ *                         example: "a56b7d8c-45d9-4b23-a8c4-6e2c1b92d3f5"
+ *                       productName:
+ *                         type: string
+ *                         example: "Wireless Earbuds"
+ *                       totalQuantity:
+ *                         type: integer
+ *                         example: 230
+ *                       totalRevenue:
+ *                         type: number
+ *                         format: float
+ *                         example: 11500.75
+ *       401:
+ *         description: Unauthorized — Authentication required
+ *       500:
+ *         description: Internal server error
+ */
 
 
 export default router;

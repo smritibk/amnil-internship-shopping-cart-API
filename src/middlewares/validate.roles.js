@@ -4,10 +4,10 @@ import User from "../models/user.model.js";
 export const isSeller = async (req, res, next) => {
   try {
     //extract token from req.headers
-    console.log(req.headers);
+    // console.log(req.headers);
     // console.log(req.headers.authorization);
     const { authorization } = req.headers;
-    console.log(authorization);
+    // console.log(authorization);
 
     const splitArray = authorization?.split(" "); //optional chaining
     // console.log(splitArray);
@@ -54,10 +54,10 @@ export const isSeller = async (req, res, next) => {
 export const isCustomer = async (req, res, next) => {
   try {
     //extract token from req.headers
-    console.log(req.headers);
+    // console.log(req.headers);
     // console.log(req.headers.authorization);
     const { authorization } = req.headers;
-    console.log(authorization);
+    // console.log(authorization);
 
     const splitArray = authorization?.split(" "); //optional chaining
     // console.log(splitArray);
@@ -73,7 +73,7 @@ export const isCustomer = async (req, res, next) => {
 
     //verify token
     const payload = jwt.verify(token, secretKey);
-    console.log(payload);
+    // console.log(payload);
 
     //find user using email from payload
     // const user = await User.findOne({
@@ -98,17 +98,17 @@ export const isCustomer = async (req, res, next) => {
     //call next function
     next();
   } catch (error) {
-    return res.status(401).send({ message: "Unauthorized123" });
+    return res.status(401).send({ message: "Unauthorized" });
   }
 };
 
 export const isUser = async (req, res, next) => {
   try {
     //extract token from req.headers
-    console.log(req.headers);
+    // console.log(req.headers);
     // console.log(req.headers.authorization);
     const { authorization } = req.headers;
-    console.log(authorization);
+    // console.log(authorization);
 
     const splitArray = authorization?.split(" "); //optional chaining
     // console.log(splitArray);
@@ -124,7 +124,7 @@ export const isUser = async (req, res, next) => {
 
     //verify token
     const payload = jwt.verify(token, secretKey);
-    console.log(payload);
+    // console.log(payload);
 
     //find user using email from payload
     // const user = await User.findOne({

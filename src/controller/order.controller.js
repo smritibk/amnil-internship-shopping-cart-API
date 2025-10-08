@@ -1,3 +1,4 @@
+import sequelize from "../config/db.configuration.js";
 import Cart from "../models/cart.model.js";
 import CartItem from "../models/cartItem.model.js";
 import Order from "../models/order.model.js";
@@ -51,8 +52,8 @@ export const placeOrder = async (req, res) => {
       });
 
       //reduce product stock here instead of after order creation
-    //   product.stock -= item.quantity;
-    //   await product.save();
+      //   product.stock -= item.quantity;
+      //   await product.save();
     }
 
     // Create the order
@@ -118,3 +119,101 @@ export const getOrderDetailsById = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+//get most placed products
+export const mostPlacedProducts = async (req, res) => {
+  try {
+    const topProducts = await OrderItem.findAll({
+      attributes: [
+        "productId",
+        [sequelize.fn("SUM", sequelize.col("quantity")), "totalQuantity"],
+      ],
+      include: [
+        {
+          model: Product,
+          as: "product",
+          attributes: ["name"], // 👈 get product name
+        },
+      ],
+      group: ["OrderItem.productId", "product.id"],
+      order: [[sequelize.fn("SUM", sequelize.col("quantity")), "DESC"]],
+      limit: 5,
+    });
+
+    return res.status(200).json({ topProducts });
+  } catch (error) {
+    console.error("Error fetching most placed products:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//get total revenue by product sold
+export const totalSales = async (req, res) => {
+  try {
+    const totalRevenue = await OrderItem.findAll({
+      attributes: [
+        "productId",
+        [sequelize.fn("SUM", sequelize.col("price")), "totalRevenue"],
+      ],
+      include: [
+        {
+          model: Product,
+          as: "product",
+          attributes: ["name"],
+        },
+      ],
+      group: ["productId", "product.id"],
+    });
+
+    return res.status(200).json({ totalRevenue });
+  } catch (error) {
+    console.error("Error fetching total revenue:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//get order summary - top 5 most placed products and their total revenue
+
+// export const orderSummary = async (req, res) => {
+//   try {
+//     const topProducts = await OrderItem.findAll({
+//       attributes: [
+//         "productId",
+//         [sequelize.fn("SUM", sequelize.col("quantity")), "totalQuantity"],
+//         [
+//           sequelize.fn("SUM", sequelize.col("Order.totalAmount")),
+//           "totalRevenue",
+//         ], // sum revenue from Order
+//       ],
+//       include: [
+//         {
+//           model: Product,
+//           as: "product",
+//           attributes: ["name"],
+//         },
+//         {
+//           model: Order,
+//           attributes: [], // we only need totalAmount for aggregation
+//         },
+//       ],
+//       group: ["OrderItem.productId", "product.id"],
+//       order: [[sequelize.fn("SUM", sequelize.col("quantity")), "DESC"]],
+//       limit: 5,
+//       raw: true, // return plain objects instead of Sequelize instances
+//       nest: true, // keep included models nested
+//     });
+
+//     // format topProducts
+//     const formattedTopProducts = topProducts.map((item) => ({
+//       productId: item.productId,
+//       productName: item.product.name,
+//       totalQuantity: parseInt(item.totalQuantity, 10),
+//       totalRevenue: parseFloat(item.totalRevenue),
+//     }));
+
+//     return res.status(200).json({ topProducts: formattedTopProducts });
+//   } catch (error) {
+//     console.error("Error fetching order summary:", error);
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// };

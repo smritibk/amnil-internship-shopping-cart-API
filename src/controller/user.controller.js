@@ -208,17 +208,17 @@ const sendResetPasswordEmail = async (email, name, resetToken) => {
 //forget password
 export const forgetPassword = async (req, res) => {
   try {
-    console.log("req.body:", req.body);
+    // console.log("req.body:", req.body);
     const { email } = req.body;
     const userDetails = await User.findOne({ where: { email: email } });
-    console.log(userDetails.email);
+    // console.log(userDetails.email);
 
     if (!userDetails) {
       return res.status(404).send({ message: "User not found" });
     }
 
     // const email = userDetails.email;
-    console.log(email);
+    // console.log(email);
 
     //generate a reset token (in a real application, this should be more secure and time-limited)
     // const resetToken = jwt.sign({ email: email }, "resetSecretKey", {

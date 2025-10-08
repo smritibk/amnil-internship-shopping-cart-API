@@ -13,6 +13,7 @@ import {
   viewProductsCustomer,
   viewProductsSeller,
 } from "../controller/product.controller.js";
+import upload from "../middlewares/image.upload.js";
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ const router = express.Router();
 router.post(
   "/add/product",
   isSeller,
+  upload.single("image"),
   validateReqBody(productValidationSchema),
   addProduct
 );
@@ -36,7 +38,7 @@ router.post(
  *    requestBody:
  *      required: true
  *      content:
- *        application/json:
+ *        multipart/form-data:
  *          schema:
  *            type: object
  *            required: [name, description, price, stock, categoryId]
@@ -49,10 +51,13 @@ router.post(
  *                type: number
  *              stock:
  *                type: number
+ *              image:
+ *                type: string
+ *                format: binary
+ *                description: The product image file
  *              categoryId:
  *                type: string
  *                format: uuid
- *                required: true
  *                description: The unique category ID
  *    responses:
  *       201:
@@ -219,6 +224,7 @@ router.get("/view/products/seller", isSeller, viewProductsSeller);
 router.put(
   "/edit/product/:id",
   isSeller,
+  upload.single("image"),
   validateReqBody(productValidationSchema),
   editProduct
 );
@@ -243,7 +249,7 @@ router.put(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -254,13 +260,14 @@ router.put(
  *               price:
  *                 type: number
  *                 format: decimal
+ *               categoryId:
+ *                 type: string
+ *                 format: uuid
+ *               image:
+ *                 type: string
+ *                 format: binary
  *               stock:
  *                 type: integer
- *             example:
- *               name: "iPhone 15 Pro"
- *               description: "Latest iPhone model with A17 chip"
- *               price: 1299.99
- *               stock: 20
  *     responses:
  *       200:
  *         description: Product updated successfully
