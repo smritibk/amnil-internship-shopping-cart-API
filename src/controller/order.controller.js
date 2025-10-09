@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import sequelize from "../config/db.configuration.js";
 import Cart from "../models/cart.model.js";
 import CartItem from "../models/cartItem.model.js";
@@ -153,7 +154,13 @@ export const totalSales = async (req, res) => {
     const totalRevenue = await OrderItem.findAll({
       attributes: [
         "productId",
-        [sequelize.fn("SUM", sequelize.col("price")), "totalRevenue"],
+        [
+          sequelize.fn(
+            "SUM",
+            sequelize.literal('"OrderItem"."quantity" * "OrderItem"."price"')
+          ),
+          "totalRevenue",
+        ],
       ],
       include: [
         {
@@ -169,6 +176,67 @@ export const totalSales = async (req, res) => {
   } catch (error) {
     console.error("Error fetching total revenue:", error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//get total revenue filtered by date range
+export const totalRevenueByDate = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    if (!startDate || !endDate) {
+      return res
+        .status(400)
+        .json({ message: "startDate and endDate are required" });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const totalRevenue = await OrderItem.findAll({
+      attributes: [
+        // "productId",
+        [
+          sequelize.fn(
+            "SUM",
+            sequelize.literal('"OrderItem"."quantity" * "OrderItem"."price"')
+          ),
+          "totalRevenue",
+        ],
+      ],
+      include: [
+        // {
+        //   model: Product,
+        // as: "product",
+        //   attributes: ["name"],
+        // },
+        {
+          model: Order,
+          as: "order",
+          attributes: [], // we only need Order for filtering
+          where: {
+            createdAt: {
+              [Op.between]: [start, end],
+            },
+          },
+        },
+      ],
+      // group: ["productId", "Product.id"],
+      raw: true, // return plain objects instead of Sequelize instances
+    });
+
+    return res.status(200).json({ totalRevenue });
+  } catch (error) {
+    console.error("Error fetching total revenue:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//get daily revenue
+export const dailyRevenue = async (req, res) => {
+  try {
+    
+  } catch (error) {
+    
   }
 };
 
@@ -217,3 +285,5 @@ export const totalSales = async (req, res) => {
 //     return res.status(500).json({ message: "Internal server error" });
 //   }
 // };
+
+// Daily revenue report with date filtering

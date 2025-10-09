@@ -3,11 +3,12 @@ import {
   getOrderDetailsById,
   mostPlacedProducts,
   placeOrder,
+  totalRevenueByDate,
   totalSales,
-  viewOrders,
+  viewOrders
 } from "../controller/order.controller.js";
-import { isCustomer, isSeller } from "../middlewares/validate.roles.js";
 import validateReqBody from "../middlewares/validate.req.body.js";
+import { isCustomer } from "../middlewares/validate.roles.js";
 import { orderValidationSchema } from "../validation/order.validation.js";
 
 const router = express.Router();
@@ -361,5 +362,190 @@ router.get("/order/totalSales", totalSales);
  *         description: Internal server error
  */
 
+router.get("/order/totalRevenueByDate", totalRevenueByDate);
+
+/**
+ * @swagger
+ * /order/totalRevenueByDate:
+ *   get:
+ *     summary: Get total revenue by date range
+ *     description: Returns the total revenue generated for each product within a specified date range. Requires `startDate` and `endDate` query parameters.
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: The start date for filtering orders (inclusive).
+ *         example: "2025-10-01"
+ *       - in: query
+ *         name: endDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: The end date for filtering orders (inclusive).
+ *         example: "2025-10-09"
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved total revenue by date range
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalRevenue:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       productId:
+ *                         type: string
+ *                         format: uuid
+ *                         example: "e4f7c223-9912-4fd1-8ad1-4a5f31d9f7a1"
+ *                       product:
+ *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                             example: "Smart Watch"
+ *                       totalRevenue:
+ *                         type: number
+ *                         format: float
+ *                         example: 18999.99
+ *       400:
+ *         description: Bad Request — startDate and endDate are required
+ *       401:
+ *         description: Unauthorized — Authentication required
+ *       500:
+ *         description: Internal server error
+ */
+
+// Daily revenue report with date filtering
+// router.get("/order/dailyRevenue", getDailyRevenueReport);
+
+/**
+ * @swagger
+ * /order/dailyRevenue:
+ *   get:
+ *     summary: Get daily revenue report with date filtering
+ *     description: Returns a comprehensive daily revenue report with date filtering options. Can filter by single date or date range. Includes daily breakdown, product breakdown, and summary statistics.
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Single date to filter (YYYY-MM-DD format). Use this OR startDate/endDate.
+ *         example: "2025-01-15"
+ *       - in: query
+ *         name: startDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for range filtering (YYYY-MM-DD format). Must be used with endDate.
+ *         example: "2025-01-01"
+ *       - in: query
+ *         name: endDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for range filtering (YYYY-MM-DD format). Must be used with startDate.
+ *         example: "2025-01-31"
+ *     responses:
+ *       200:
+ *         description: Daily revenue report retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Daily revenue report retrieved successfully"
+ *                 report:
+ *                   type: object
+ *                   properties:
+ *                     dateRange:
+ *                       type: object
+ *                       properties:
+ *                         startDate:
+ *                           type: string
+ *                           format: date
+ *                           example: "2025-01-01"
+ *                         endDate:
+ *                           type: string
+ *                           format: date
+ *                           example: "2025-01-31"
+ *                     summary:
+ *                       type: object
+ *                       properties:
+ *                         totalRevenue:
+ *                           type: number
+ *                           format: float
+ *                           example: 15750.50
+ *                         totalOrders:
+ *                           type: integer
+ *                           example: 45
+ *                         averageOrderValue:
+ *                           type: number
+ *                           format: float
+ *                           example: 350.01
+ *                     dailyBreakdown:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           date:
+ *                             type: string
+ *                             format: date
+ *                             example: "2025-01-15"
+ *                           totalOrders:
+ *                             type: integer
+ *                             example: 5
+ *                           totalRevenue:
+ *                             type: number
+ *                             format: float
+ *                             example: 1250.75
+ *                     productBreakdown:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           date:
+ *                             type: string
+ *                             format: date
+ *                             example: "2025-01-15"
+ *                           productId:
+ *                             type: string
+ *                             format: uuid
+ *                             example: "a56b7d8c-45d9-4b23-a8c4-6e2c1b92d3f5"
+ *                           productName:
+ *                             type: string
+ *                             example: "Wireless Earbuds"
+ *                           totalQuantity:
+ *                             type: integer
+ *                             example: 10
+ *                           productRevenue:
+ *                             type: number
+ *                             format: float
+ *                             example: 1250.75
+ *       400:
+ *         description: Bad Request — Either 'date' or both 'startDate' and 'endDate' parameters are required
+ *       401:
+ *         description: Unauthorized — Seller authentication required
+ *       500:
+ *         description: Internal server error
+ */
 
 export default router;

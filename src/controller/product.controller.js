@@ -229,6 +229,7 @@ export const viewProductsSeller = async (req, res) => {
       "name",
       "price",
       "stock",
+      "image",
       // Postgres substring
       [
         Product.sequelize.literal(`SUBSTRING("description", 1, 200)`),
