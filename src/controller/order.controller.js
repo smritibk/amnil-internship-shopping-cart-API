@@ -1,10 +1,10 @@
-import { Op } from "sequelize";
 import sequelize from "../config/db.configuration.js";
 import Cart from "../models/cart.model.js";
 import CartItem from "../models/cartItem.model.js";
 import Order from "../models/order.model.js";
 import OrderItem from "../models/orderItem.model.js";
 import Product from "../models/product.model.js";
+import { Op, fn, col, literal } from "sequelize";
 
 // place order
 export const placeOrder = async (req, res) => {
@@ -232,11 +232,55 @@ export const totalRevenueByDate = async (req, res) => {
 };
 
 //get daily revenue
+
 export const dailyRevenue = async (req, res) => {
   try {
-    
+    const { startDate, endDate } = req.query;
+    if (!startDate || !endDate) {
+      return res
+        .status(400)
+        .json({ message: "startDate and endDate are required" });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // ✅ Add one day to include the full end date
+    end.setDate(end.getDate() + 1);
+
+    const dailyRevenue = await OrderItem.findAll({
+      attributes: [
+        // Convert createdAt to just DATE (without time) and alias it as "date"
+        [sequelize.fn("DATE", col("order.createdAt")), "date"],
+        [
+          sequelize.fn(
+            "SUM",
+            literal('"OrderItem"."quantity" * "OrderItem"."price"')
+          ),
+          "totalRevenue",
+        ],
+      ],
+      include: [
+        {
+          model: Order,
+          as: "order",
+          attributes: [], // only needed for filtering + grouping
+          where: {
+            createdAt: {
+              [Op.between]: [start, end],
+            },
+          },
+        },
+      ],
+      group: [sequelize.fn("DATE", col("order.createdAt"))],
+      order: [[sequelize.fn("DATE", col("order.createdAt")), "ASC"]],
+      raw: true,
+    });
+
+    return res.status(200).json({ dailyRevenue });
   } catch (error) {
-    
+    console.error("Error fetching daily revenue:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 

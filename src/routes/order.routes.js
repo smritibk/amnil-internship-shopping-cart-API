@@ -1,11 +1,12 @@
 import express from "express";
 import {
+  dailyRevenue,
   getOrderDetailsById,
   mostPlacedProducts,
   placeOrder,
   totalRevenueByDate,
   totalSales,
-  viewOrders
+  viewOrders,
 } from "../controller/order.controller.js";
 import validateReqBody from "../middlewares/validate.req.body.js";
 import { isCustomer } from "../middlewares/validate.roles.js";
@@ -425,127 +426,55 @@ router.get("/order/totalRevenueByDate", totalRevenueByDate);
  *         description: Internal server error
  */
 
-// Daily revenue report with date filtering
-// router.get("/order/dailyRevenue", getDailyRevenueReport);
+//daily revenue 
+router.get("/order/dailyRevenue", dailyRevenue)
 
 /**
  * @swagger
  * /order/dailyRevenue:
  *   get:
- *     summary: Get daily revenue report with date filtering
- *     description: Returns a comprehensive daily revenue report with date filtering options. Can filter by single date or date range. Includes daily breakdown, product breakdown, and summary statistics.
- *     tags: [Order]
- *     security:
- *       - bearerAuth: []
+ *     summary: Get daily revenue within a selected date range
+ *     description: Returns total daily revenue for each day between startDate and endDate.
+ *     tags: [Revenue]
  *     parameters:
  *       - in: query
- *         name: date
- *         required: false
- *         schema:
- *           type: string
- *           format: date
- *         description: Single date to filter (YYYY-MM-DD format). Use this OR startDate/endDate.
- *         example: "2025-01-15"
- *       - in: query
  *         name: startDate
- *         required: false
+ *         required: true
  *         schema:
  *           type: string
  *           format: date
- *         description: Start date for range filtering (YYYY-MM-DD format). Must be used with endDate.
- *         example: "2025-01-01"
+ *         description: Start date (YYYY-MM-DD)
  *       - in: query
  *         name: endDate
- *         required: false
+ *         required: true
  *         schema:
  *           type: string
  *           format: date
- *         description: End date for range filtering (YYYY-MM-DD format). Must be used with startDate.
- *         example: "2025-01-31"
+ *         description: End date (YYYY-MM-DD)
  *     responses:
  *       200:
- *         description: Daily revenue report retrieved successfully
+ *         description: Successful response with daily revenue data
  *         content:
  *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Daily revenue report retrieved successfully"
- *                 report:
- *                   type: object
- *                   properties:
- *                     dateRange:
- *                       type: object
- *                       properties:
- *                         startDate:
- *                           type: string
- *                           format: date
- *                           example: "2025-01-01"
- *                         endDate:
- *                           type: string
- *                           format: date
- *                           example: "2025-01-31"
- *                     summary:
- *                       type: object
- *                       properties:
- *                         totalRevenue:
- *                           type: number
- *                           format: float
- *                           example: 15750.50
- *                         totalOrders:
- *                           type: integer
- *                           example: 45
- *                         averageOrderValue:
- *                           type: number
- *                           format: float
- *                           example: 350.01
- *                     dailyBreakdown:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           date:
- *                             type: string
- *                             format: date
- *                             example: "2025-01-15"
- *                           totalOrders:
- *                             type: integer
- *                             example: 5
- *                           totalRevenue:
- *                             type: number
- *                             format: float
- *                             example: 1250.75
- *                     productBreakdown:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           date:
- *                             type: string
- *                             format: date
- *                             example: "2025-01-15"
- *                           productId:
- *                             type: string
- *                             format: uuid
- *                             example: "a56b7d8c-45d9-4b23-a8c4-6e2c1b92d3f5"
- *                           productName:
- *                             type: string
- *                             example: "Wireless Earbuds"
- *                           totalQuantity:
- *                             type: integer
- *                             example: 10
- *                           productRevenue:
- *                             type: number
- *                             format: float
- *                             example: 1250.75
+ *             example:
+ *               dailyRevenue:
+ *                 - date: "2025-10-01"
+ *                   totalRevenue: "25000.00"
+ *                 - date: "2025-10-02"
+ *                   totalRevenue: "18000.00"
  *       400:
- *         description: Bad Request — Either 'date' or both 'startDate' and 'endDate' parameters are required
- *       401:
- *         description: Unauthorized — Seller authentication required
+ *         description: Missing or invalid date parameters
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "startDate and endDate are required"
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Internal server error"
  */
+
 
 export default router;
