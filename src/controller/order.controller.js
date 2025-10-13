@@ -284,6 +284,55 @@ export const dailyRevenue = async (req, res) => {
   }
 };
 
+//get daily revenue for excel
+export const dailyRevenueData = async (startDate, endDate) => {
+  try {
+    if (!startDate || !endDate) {
+      throw new Error("startDate and endDate are required");
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    //Add one day to include the full end date
+    end.setDate(end.getDate() + 1);
+
+    const dailyRevenue = await OrderItem.findAll({
+      attributes: [
+        // Convert createdAt to just DATE (without time) and alias it as "date"
+        [sequelize.fn("DATE", col("order.createdAt")), "date"],
+        [
+          sequelize.fn(
+            "SUM",
+            literal('"OrderItem"."quantity" * "OrderItem"."price"')
+          ),
+          "totalRevenue",
+        ],
+      ],
+      include: [
+        {
+          model: Order,
+          as: "order",
+          attributes: [], // only needed for filtering + grouping
+          where: {
+            createdAt: {
+              [Op.between]: [start, end],
+            },
+          },
+        },
+      ],
+      group: [sequelize.fn("DATE", col("order.createdAt"))],
+      order: [[sequelize.fn("DATE", col("order.createdAt")), "ASC"]],
+      raw: true,
+    });
+
+    return dailyRevenue;
+  } catch (error) {
+    console.error("Error fetching daily revenue:", error);
+    throw error;
+  }
+};
+
 //get order summary - top 5 most placed products and their total revenue
 
 // export const orderSummary = async (req, res) => {
