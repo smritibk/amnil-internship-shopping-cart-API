@@ -43,6 +43,7 @@ export const isSeller = async (req, res, next) => {
 
     //attach user.id to req
     req.loggedInUserId = user.id;
+    req.loggedInUserEmail = user.email;
 
     //call next function
     next();

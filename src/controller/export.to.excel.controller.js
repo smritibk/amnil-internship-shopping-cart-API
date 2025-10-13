@@ -1,5 +1,8 @@
 import ExcelJS from "exceljs";
-import { dailyRevenueData } from "./order.controller.js";
+import {
+  dailyRevenueData,
+  mostPlacedProductsData,
+} from "./order.controller.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -51,7 +54,7 @@ export const dailyRevenueToExcel = async (req, res) => {
     //Send email with attachment
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: "bksmriti7@gmail.com", // replace with your own or dynamic one
+      to: req.loggedInUserEmail, // replace with your own or dynamic one
       subject: "Daily Revenue Report",
       text: `Attached is your daily revenue report for ${startDate} to ${endDate}.`,
       attachments: [
@@ -65,7 +68,51 @@ export const dailyRevenueToExcel = async (req, res) => {
     await transporter.sendMail(mailOptions);
 
     res.status(200).json({
-      message: "Excel file created successfully",
+      message: "Excel file created and email sent successfully",
+      filePath,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to export revenue data" });
+  }
+};
+
+export const mostPlacedProductToExcel = async (req, res) => {
+  try {
+    const data = await mostPlacedProductsData();
+    console.log("This is most sold products", data);
+
+    // Create Excel
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Revenue Report");
+
+    worksheet.columns = [
+      { header: "Product Name", key: "product.name", width: 15 },
+      { header: "Total Quantity", key: "totalQuantity", width: 20 },
+    ];
+
+    data.forEach((item) => {
+      worksheet.addRow({
+        name: item.product.name,
+        totalQuantity: item.totalQuantity,
+      });
+    });
+
+    //absolute path to excelFile directory
+    const excelDir = path.join(__dirname, "../../excelFile");
+
+    //ensure directory exists
+    if (!fs.existsSync(excelDir)) {
+      fs.mkdirSync(excelDir, { recursive: true });
+    }
+
+    // const filePath = "../../excelFile/daily_revenue_report.xlsx";
+    const filePath = path.join(excelDir, "most_placed_products_report.xlsx");
+
+    await workbook.xlsx.writeFile(filePath);
+
+    res.status(200).json({
+      message: "Excel file created and email sent successfully",
       filePath,
     });
   } catch (error) {

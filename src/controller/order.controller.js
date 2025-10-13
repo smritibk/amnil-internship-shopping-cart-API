@@ -148,6 +148,33 @@ export const mostPlacedProducts = async (req, res) => {
   }
 };
 
+//get most placed product, extracting just the data
+export const mostPlacedProductsData = async () => {
+  try {
+    const topProducts = await OrderItem.findAll({
+      attributes: [
+        "productId",
+        [sequelize.fn("SUM", sequelize.col("quantity")), "totalQuantity"],
+      ],
+      include: [
+        {
+          model: Product,
+          as: "product",
+          attributes: ["name"], // 👈 get product name
+        },
+      ],
+      group: ["OrderItem.productId", "product.id"],
+      order: [[sequelize.fn("SUM", sequelize.col("quantity")), "DESC"]],
+      limit: 5,
+    });
+
+    return topProducts;
+  } catch (error) {
+    console.error("Error fetching most placed products:", error);
+    throw error;
+  }
+};
+
 //get total revenue by product sold
 export const totalSales = async (req, res) => {
   try {
@@ -333,50 +360,7 @@ export const dailyRevenueData = async (startDate, endDate) => {
   }
 };
 
-//get order summary - top 5 most placed products and their total revenue
-
-// export const orderSummary = async (req, res) => {
-//   try {
-//     const topProducts = await OrderItem.findAll({
-//       attributes: [
-//         "productId",
-//         [sequelize.fn("SUM", sequelize.col("quantity")), "totalQuantity"],
-//         [
-//           sequelize.fn("SUM", sequelize.col("Order.totalAmount")),
-//           "totalRevenue",
-//         ], // sum revenue from Order
-//       ],
-//       include: [
-//         {
-//           model: Product,
-//           as: "product",
-//           attributes: ["name"],
-//         },
-//         {
-//           model: Order,
-//           attributes: [], // we only need totalAmount for aggregation
-//         },
-//       ],
-//       group: ["OrderItem.productId", "product.id"],
-//       order: [[sequelize.fn("SUM", sequelize.col("quantity")), "DESC"]],
-//       limit: 5,
-//       raw: true, // return plain objects instead of Sequelize instances
-//       nest: true, // keep included models nested
-//     });
-
-//     // format topProducts
-//     const formattedTopProducts = topProducts.map((item) => ({
-//       productId: item.productId,
-//       productName: item.product.name,
-//       totalQuantity: parseInt(item.totalQuantity, 10),
-//       totalRevenue: parseFloat(item.totalRevenue),
-//     }));
-
-//     return res.status(200).json({ topProducts: formattedTopProducts });
-//   } catch (error) {
-//     console.error("Error fetching order summary:", error);
-//     return res.status(500).json({ message: "Internal server error" });
-//   }
-// };
-
-// Daily revenue report with date filtering
+//get the data by categories
+export const dataByCategories = async (req, res) => {
+  
+};

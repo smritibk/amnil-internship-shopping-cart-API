@@ -17,13 +17,6 @@ const Product = sequelize.define("Product", {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-//   category: {
-//     type: DataTypes.STRING,
-//     allowNull: false,
-//     validate: {
-//       isIn: [["Electronics", "Clothing", "Books", "Home", "Beauty"]],
-//     },
-//   },
   price: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,

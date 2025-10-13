@@ -12,6 +12,8 @@ import cors from "cors";
 import cartRoutes from "./routes/cart.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import excelRoutes from "./routes/export.to.excel.routes.js";
+import pdfRoutes from "./routes/export.as.pdf.routes.js";
+import reportRoutes from "./routes/report.routes.js";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -75,6 +77,8 @@ app.use(productRoutes);
 app.use(cartRoutes);
 app.use(orderRoutes);
 app.use(excelRoutes);
+app.use(pdfRoutes);
+app.use(reportRoutes);
 
 //database configuration and server start
 sequelize
